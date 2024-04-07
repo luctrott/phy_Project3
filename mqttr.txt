@@ -1,0 +1,1 @@
+mqtt-recorder --mode record --host localhost --file daten.csv --topics topics.json

@@ -11,14 +11,18 @@ class RoboLogger:
         self.mqtt_sensor.client.on_connect = self.on_connect
         self.mqtt_sensor.client.on_subscribe = self.on_subscribe
         self.mqtt_publisher = MqttPublisher(config.BROKER, config.BROKER_PORT)
+        self.below_50 = False
     
     def on_sensor_message(self, client, userdata, msg):
         json_data = json.loads(msg.payload)
         self.log(f"Sensor message: {json_data}")
         distance = json_data['distance']
-        if distance < 50:
+        if distance < 50 and not self.below_50:
             self.mqtt_publisher.publish(config.TOPIC_ROBO_MOVEMENT, json.dumps({"motor_left":{"direction":"backward","speed":0},"motor_right":{"direction":"backward","speed":0}}))
             self.log(f"Robo Gestoppt: {distance}")
+            self.below_50 = True
+        elif distance >= 50 and self.below_50:
+            self.below_50 = False
     def on_connect(self, client, userdata, flags, rc):
         self.log(f"Verbunden: {rc}")
     
